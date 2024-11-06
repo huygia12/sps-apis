@@ -12,6 +12,12 @@ import ms from "ms";
 import UserNotFoundError from "@/errors/user/user-not-found";
 import {UserRole} from "@prisma/client";
 
+/**
+ * If updated username had already been existed in DB, return conflict status
+ *
+ * @param {Request} req
+ * @param {Response} res
+ */
 const signup = async (req: Request, res: Response) => {
     const userSignup = req.body as UserSignup;
 
@@ -75,7 +81,7 @@ const logout = async (req: Request, res: Response) => {
     console.debug(`[user controller]: Logout successfull`);
     res.removeHeader("Authorization");
     res.clearCookie(AuthToken.RF);
-    return res.status(StatusCodes.OK).json({message: ResponseMessage.SUCCESS});
+    res.status(StatusCodes.OK).json({message: ResponseMessage.SUCCESS});
 };
 
 /**
@@ -112,8 +118,8 @@ const refreshToken = async (req: Request, res: Response) => {
 };
 
 /**
- * Update user information(not include password)
- * If updated email had already been existed in DB, return
+ * Update user fingerprint or name
+ * If updated username had already been existed in DB, return conflict status
  *
  * @param {Request} req
  * @param {Response} res
@@ -134,6 +140,11 @@ const updateInfo = async (req: Request, res: Response) => {
     });
 };
 
+/**
+ * Can get any kind of user
+ * @param req
+ * @param res
+ */
 const getUser = async (req: Request, res: Response) => {
     const userId = req.params.id as string;
 
@@ -151,8 +162,15 @@ const getUser = async (req: Request, res: Response) => {
     });
 };
 
+/**
+ * Can only get customers
+ * @param req
+ * @param res
+ */
 const getUsers = async (req: Request, res: Response) => {
-    const users: UserDTO[] = await userService.getUserDTOs();
+    const users: UserDTO[] = await userService.getUserDTOs({
+        role: UserRole.CUSTOMER,
+    });
 
     console.debug(`[user controller]: get users succeed`);
     res.status(StatusCodes.OK).json({

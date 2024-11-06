@@ -10,7 +10,7 @@ datasource db {
 model Card {
   cardId String  @id
   userId String? @db.Uuid
-  User   User?   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  user   User?   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model ParkingSlot {
@@ -28,7 +28,7 @@ model User {
   refreshTokens String[]  @default([])
   createdAt     DateTime  @default(now()) @db.Timestamptz(6)
   Card          Card[]
-  Vehicle       Vehicle[]
+  vehicles       Vehicle[]
 }
 
 model Vehicle {

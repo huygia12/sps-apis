@@ -3,7 +3,11 @@ import {CardInsertion, CardUpdate} from "@/common/schemas";
 import {Card} from "@prisma/client";
 
 const getCards = async (): Promise<Card[]> => {
-    const cards = await prisma.card.findMany();
+    const cards = await prisma.card.findMany({
+        include: {
+            user: true,
+        },
+    });
     return cards;
 };
 

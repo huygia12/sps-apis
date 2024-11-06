@@ -1,3 +1,4 @@
+import {SlotStatus} from "@prisma/client";
 import {RequestMethod, ResponseMessage} from "./constants";
 import zod, {ZodSchema, z} from "zod";
 
@@ -38,7 +39,9 @@ const parkingSlotsUpdateSchema = zod
     .array(
         zod.object({
             slotId: z.number(),
-            state: blankCheck().optional(),
+            state: z
+                .enum([SlotStatus.OCCUPIED, SlotStatus.UNOCCUPIED])
+                .optional(),
         })
     )
     .refine((value) => value.length > 0, ResponseMessage.ARRAY_IS_EMPTY);

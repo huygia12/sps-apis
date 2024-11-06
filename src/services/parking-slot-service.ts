@@ -19,19 +19,20 @@ const createSlots = async (
 const updateSlotsStatus = async (
     validPayload: ParkingSlotsUpdate
 ): Promise<void> => {
-    // const ids = retriveSlotIds(validPayload);
-    const slotsStatus = await prisma.parkingSlot.updateMany({
-        // where: {
-        //     slotId: {
-        //         in: ids,
-        //     },
-        // },
-        data: validPayload,
-    });
+    const query = `
+        UPDATE "ParkingSlot"
+        SET "state" = CASE
+            ${validPayload.map((update) => `WHEN "slotId" = ${update.slotId} THEN '${update.state}'`).join("\n")}
+            ELSE "state"
+        END
+        WHERE "slotId" IN (${getIds(validPayload).join(", ")});
+        `;
+
+    await prisma.$executeRawUnsafe(query);
 };
 
-const retriveSlotIds = (parkingSlot: ParkingSlot[]): number[] => {
-    return parkingSlot.map((slot) => slot.slotId);
+const getIds = (data: {slotId: number}[]) => {
+    return data.map((item) => item.slotId);
 };
 
 const getInsertSlotsObject = (numberOfSlots: number) => {

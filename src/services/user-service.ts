@@ -16,18 +16,18 @@ import UserCannotBeDeleted from "@/errors/user/user-cannot-be-deleted";
 
 const saltOfRound = 10;
 
-const getUserDTOs = async (): Promise<UserDTO[]> => {
+const getUserDTOs = async (params: {role?: UserRole}): Promise<UserDTO[]> => {
     const users = await prisma.user.findMany({
         where: {
-            role: {
-                not: UserRole.STAFF,
-            },
+            role: params.role,
         },
         select: {
             userId: true,
             username: true,
             role: true,
+            fingerprint: true,
             createdAt: true,
+            vehicles: true,
         },
     });
 
@@ -64,6 +64,7 @@ const getValidUserDTO = async (
         username: findByUsername.username,
         role: findByUsername.role,
         createdAt: findByUsername.createdAt,
+        fingerprint: findByUsername.fingerprint,
     };
 };
 
@@ -77,6 +78,8 @@ const getUserDTO = async (userId: string): Promise<UserDTO | null> => {
             username: true,
             role: true,
             createdAt: true,
+            fingerprint: true,
+            vehicles: true,
         },
     });
 
@@ -237,6 +240,7 @@ const insertUser = async (validPayload: UserSignup): Promise<UserDTO> => {
             username: true,
             role: true,
             createdAt: true,
+            fingerprint: true,
         },
     });
     return user;
@@ -269,6 +273,7 @@ const updateUser = async (
             userId: true,
             username: true,
             role: true,
+            fingerprint: true,
             createdAt: true,
         },
     });

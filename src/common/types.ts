@@ -6,6 +6,7 @@ export interface UserDTO {
     userId: string;
     username: string;
     role: UserRole;
+    fingerprint: string | null;
     createdAt: Date;
 }
 

@@ -1,5 +1,5 @@
 import express from "express";
-import userController from "../../controllers/user-controller";
+import userController from "@/controllers/user-controller";
 import {authMiddleware} from "@/middleware/auth-middleware";
 import {expressSchemaValidator} from "@/middleware/schema-validator";
 
@@ -16,7 +16,7 @@ router.post(
     expressSchemaValidator("/users/login"),
     userController.login
 );
-router.post("/logout", userController.logout);
+router.get("/logout", userController.logout);
 router.get("/refresh", userController.refreshToken);
 
 //normal user apis
