@@ -27,13 +27,8 @@ const loginSchema = zod
 const userUpdateSchema = zod
     .object({
         username: blankCheck().optional(),
-        fingerprint: blankCheck().optional(),
     })
-    .strict()
-    .refine(
-        (value) => value.fingerprint || value.username,
-        ResponseMessage.PAYLOAD_IS_REQUIRED
-    );
+    .strict();
 
 const parkingSlotsUpdateSchema = zod
     .array(
@@ -51,14 +46,13 @@ const parkingSlotsInitializationSchema = zod.object({
 });
 
 const cardUpdateSchema = zod.object({
-    cardId: z.string(),
+    cardCode: z.string(),
     userId: z.string().nullable().optional(),
 });
 
 const cardInsertionSchema = zod.object({
-    cardId: z.string(),
+    cardCode: z.string(),
 });
-
 export type UserSignup = z.infer<typeof signupSchema>;
 
 export type UserLogin = z.infer<typeof loginSchema>;
@@ -97,6 +91,8 @@ export default {
     },
     ["/cards"]: {
         [RequestMethod.PUT]: cardUpdateSchema,
+    },
+    ["/cards/:id"]: {
         [RequestMethod.POST]: cardInsertionSchema,
     },
 } as {[key: string]: {[method: string]: ZodSchema}};

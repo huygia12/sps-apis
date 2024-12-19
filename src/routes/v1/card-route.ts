@@ -13,11 +13,17 @@ router.post(
     cardController.insertCard
 );
 router.put(
-    "/",
+    "/:id",
     authMiddleware.isAuthorized,
     authMiddleware.isAdmin,
-    expressSchemaValidator("/cards"),
+    expressSchemaValidator("/cards/:id"),
     cardController.updateCard
+);
+router.delete(
+    "/:id",
+    authMiddleware.isAuthorized,
+    authMiddleware.isAdmin,
+    cardController.deleteCard
 );
 
 export default router;

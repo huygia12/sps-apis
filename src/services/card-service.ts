@@ -5,28 +5,45 @@ import {Card} from "@prisma/client";
 const getCards = async (): Promise<Card[]> => {
     const cards = await prisma.card.findMany({
         include: {
-            user: true,
+            user: {
+                select: {
+                    userId: true,
+                    username: true,
+                },
+            },
         },
     });
     return cards;
 };
 
-const updateCard = async (validPayload: CardUpdate): Promise<void> => {
-    await prisma.card.update({
+const updateCard = async (
+    cardId: string,
+    validPayload: CardUpdate
+): Promise<Card> => {
+    const card = await prisma.card.update({
         where: {
-            cardId: validPayload.cardId,
+            cardId: cardId,
         },
         data: {
-            cardId: validPayload.cardId,
-            userId: validPayload.userId,
+            cardCode: validPayload.cardCode,
         },
     });
+
+    return card;
 };
 
 const insertCard = async (validPayload: CardInsertion): Promise<void> => {
     await prisma.card.create({
         data: {
-            cardId: validPayload.cardId,
+            cardCode: validPayload.cardCode,
+        },
+    });
+};
+
+const deleteCard = async (cardId: string): Promise<void> => {
+    await prisma.card.delete({
+        where: {
+            cardId: cardId,
         },
     });
 };
@@ -35,4 +52,5 @@ export default {
     getCards,
     updateCard,
     insertCard,
+    deleteCard,
 };

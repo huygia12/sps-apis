@@ -6,7 +6,6 @@ export interface UserDTO {
     userId: string;
     username: string;
     role: UserRole;
-    fingerprint: string | null;
     createdAt: Date;
 }
 
@@ -14,6 +13,11 @@ export interface UserInToken {
     userId: string;
     username: string;
     role: UserRole;
+}
+
+export interface CardVehicle {
+    cardId: string;
+    licensePlate: string;
 }
 
 //Events

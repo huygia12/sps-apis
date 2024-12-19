@@ -23,9 +23,6 @@ const signup = async (req: Request, res: Response) => {
 
     const user = await userService.insertUser(userSignup);
 
-    console.debug(
-        `[user controller]: Signup: user ${userSignup.username} has been signup succeed`
-    );
     res.status(StatusCodes.CREATED).json({
         message: ResponseMessage.SUCCESS,
         info: user,
@@ -78,7 +75,6 @@ const logout = async (req: Request, res: Response) => {
         await userService.logout(refreshToken, user.userId);
     }
 
-    console.debug(`[user controller]: Logout successfull`);
     res.removeHeader("Authorization");
     res.clearCookie(AuthToken.RF);
     res.status(StatusCodes.OK).json({message: ResponseMessage.SUCCESS});
@@ -95,9 +91,6 @@ const refreshToken = async (req: Request, res: Response) => {
     const rtFromCookie = req.cookies.refreshToken as string;
 
     if (!rtFromCookie) {
-        console.debug(
-            `[user controller]: refresh token: Refresh token not found`
-        );
         throw new MissingTokenError(ResponseMessage.TOKEN_MISSING);
     }
 
@@ -133,7 +126,6 @@ const updateInfo = async (req: Request, res: Response) => {
         userUpdate
     );
 
-    console.debug(`[user controller] update user succeed`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
         info: updatedUser,
@@ -151,11 +143,9 @@ const getUser = async (req: Request, res: Response) => {
     const user: UserDTO | null = await userService.getUserDTO(userId);
 
     if (!user) {
-        console.debug(`[user controller]: get user : user not found`);
         throw new UserNotFoundError(ResponseMessage.USER_NOT_FOUND);
     }
 
-    console.debug(`[user controller]: get user successfull`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
         info: user,
@@ -172,12 +162,9 @@ const getUsers = async (req: Request, res: Response) => {
         role: UserRole.CUSTOMER,
     });
 
-    console.debug(`[user controller]: get users succeed`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
-        info: {
-            users: users,
-        },
+        info: users,
     });
 };
 
@@ -186,7 +173,6 @@ const deleteUser = async (req: Request, res: Response) => {
 
     await userService.deleteUser(userId);
 
-    console.debug(`[user controller]: delete user succeed`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
     });

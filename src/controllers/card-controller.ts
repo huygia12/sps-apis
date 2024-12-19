@@ -7,7 +7,6 @@ import {StatusCodes} from "http-status-codes";
 const getCards = async (req: Request, res: Response) => {
     const cards = await cardService.getCards();
 
-    console.debug(`[card controller] get cards succeed`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
         info: cards,
@@ -19,18 +18,28 @@ const insertCard = async (req: Request, res: Response) => {
 
     await cardService.insertCard(newCard);
 
-    console.debug(`[card controller] insert card succeed`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
     });
 };
 
 const updateCard = async (req: Request, res: Response) => {
-    const card = req.body as CardUpdate;
+    const cardId = req.params.cardId as string;
+    const cardUpdate = req.body as CardUpdate;
 
-    await cardService.updateCard(card);
+    const card = await cardService.updateCard(cardId, cardUpdate);
 
-    console.debug(`[card controller] update card succeed`);
+    res.status(StatusCodes.OK).json({
+        message: ResponseMessage.SUCCESS,
+        info: card,
+    });
+};
+
+const deleteCard = async (req: Request, res: Response) => {
+    const cardId = req.params.cardId as string;
+
+    await cardService.deleteCard(cardId);
+
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
     });
@@ -40,4 +49,5 @@ export default {
     getCards,
     insertCard,
     updateCard,
+    deleteCard,
 };

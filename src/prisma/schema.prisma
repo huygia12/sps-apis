@@ -8,9 +8,11 @@ datasource db {
 }
 
 model Card {
-  cardId String  @id
-  userId String? @db.Uuid
-  user   User?   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  cardId   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId   String?   @db.Uuid
+  cardCode String
+  user     User?     @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  vehicles  Vehicle[]
 }
 
 model ParkingSlot {
@@ -20,22 +22,28 @@ model ParkingSlot {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model User {
-  userId        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   username      String    @unique(map: "username_unique") @db.VarChar(255)
-  fingerprint   String?
   role          UserRole  @default(CUSTOMER)
   password      String?
   refreshTokens String[]  @default([])
   createdAt     DateTime  @default(now()) @db.Timestamptz(6)
-  Card          Card[]
-  vehicles       Vehicle[]
+  cards         Card[]
+  vehicles      Vehicle[]
 }
 
 model Vehicle {
-  vehicleId    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  licensePlate String @db.VarChar(255)
-  userId       String @db.Uuid
-  User         User   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  vehicleId    String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  licensePlate String  @db.VarChar(255)
+  userId       String  @db.Uuid
+  cardId       String? @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user         User    @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  card         Card?   @relation(fields: [cardId], references: [cardId], onDelete: NoAction, onUpdate: NoAction, map: "fk_vehicle_card")
+}
+
+model Video {
+  videoId String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name    String
 }
 
 enum SlotStatus {

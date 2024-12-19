@@ -25,7 +25,6 @@ const getUserDTOs = async (params: {role?: UserRole}): Promise<UserDTO[]> => {
             userId: true,
             username: true,
             role: true,
-            fingerprint: true,
             createdAt: true,
             vehicles: true,
         },
@@ -64,7 +63,6 @@ const getValidUserDTO = async (
         username: findByUsername.username,
         role: findByUsername.role,
         createdAt: findByUsername.createdAt,
-        fingerprint: findByUsername.fingerprint,
     };
 };
 
@@ -78,7 +76,6 @@ const getUserDTO = async (userId: string): Promise<UserDTO | null> => {
             username: true,
             role: true,
             createdAt: true,
-            fingerprint: true,
             vehicles: true,
         },
     });
@@ -240,7 +237,6 @@ const insertUser = async (validPayload: UserSignup): Promise<UserDTO> => {
             username: true,
             role: true,
             createdAt: true,
-            fingerprint: true,
         },
     });
     return user;
@@ -267,13 +263,11 @@ const updateUser = async (
         },
         data: {
             username: validPayload.username,
-            fingerprint: validPayload.fingerprint,
         },
         select: {
             userId: true,
             username: true,
             role: true,
-            fingerprint: true,
             createdAt: true,
         },
     });

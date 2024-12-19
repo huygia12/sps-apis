@@ -10,7 +10,6 @@ import {Server, Socket} from "socket.io";
 const getParkingSlots = async (req: Request, res: Response) => {
     const slotsStatus = await parkingSlotService.getSlotsStatus();
 
-    console.debug(`[parking slots controller] get slots status succeed`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
         info: slotsStatus,
@@ -21,7 +20,6 @@ const initParkingSlots = async (req: Request, res: Response) => {
     const numberOfParkingSlots = req.body as ParkingSlotsInitialization;
     await parkingSlotService.createSlots(numberOfParkingSlots);
 
-    console.debug(`[parking slots controller] init slots succeed`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
     });
@@ -32,7 +30,6 @@ const updateParkingSlots = async (req: Request, res: Response) => {
 
     await parkingSlotService.updateSlotsStatus(parkingStates);
 
-    console.debug(`[parking slots controller] update status succeed`);
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
     });
