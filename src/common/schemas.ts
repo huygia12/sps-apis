@@ -1,25 +1,23 @@
-import {SlotStatus} from "@prisma/client";
+import {SlotState} from "@prisma/client";
 import {RequestMethod, ResponseMessage} from "./constants";
-import zod, {ZodSchema, z} from "zod";
+import zod, {ZodSchema, ZodString} from "zod";
 
-const blankCheck = () =>
-    zod
-        .string()
-        .trim()
-        .refine((value) => value !== "", {
-            message: ResponseMessage.BLANK_INPUT,
-        });
+const blankCheck = (z?: ZodString) =>
+    (z || zod.string()).trim().refine((value) => value !== "", {
+        message: ResponseMessage.BLANK_INPUT,
+    });
 
 const signupSchema = zod
     .object({
         username: blankCheck(),
+        email: blankCheck(zod.string().email()),
         password: blankCheck().optional(),
     })
     .strict();
 
 const loginSchema = zod
     .object({
-        username: blankCheck(),
+        email: blankCheck(zod.string().email()),
         password: blankCheck(),
     })
     .strict();
@@ -27,47 +25,74 @@ const loginSchema = zod
 const userUpdateSchema = zod
     .object({
         username: blankCheck().optional(),
+        email: blankCheck(zod.string().email()).optional(),
     })
     .strict();
 
 const parkingSlotsUpdateSchema = zod
     .array(
         zod.object({
-            slotId: z.number(),
-            state: z
-                .enum([SlotStatus.OCCUPIED, SlotStatus.UNOCCUPIED])
+            slotId: zod.number(),
+            state: zod
+                .enum([SlotState.AVAILABLE, SlotState.UNAVAILABLE])
                 .optional(),
         })
     )
     .refine((value) => value.length > 0, ResponseMessage.ARRAY_IS_EMPTY);
 
-const parkingSlotsInitializationSchema = zod.object({
-    numberOfSlot: z.number().gt(0).lt(20),
-});
+const parkingSlotsInitializationSchema = zod
+    .object({
+        numberOfSlot: zod.number().gt(0).lt(20),
+    })
+    .strict();
 
-const cardUpdateSchema = zod.object({
-    cardCode: z.string(),
-    userId: z.string().nullable().optional(),
-});
+const cardUpdateSchema = zod
+    .object({
+        cardCode: blankCheck().optional(),
+        name: blankCheck().optional(),
+    })
+    .strict();
 
-const cardInsertionSchema = zod.object({
-    cardCode: z.string(),
-});
-export type UserSignup = z.infer<typeof signupSchema>;
+const cardInsertionSchema = zod
+    .object({
+        cardCode: blankCheck(),
+        name: blankCheck(),
+    })
+    .strict();
 
-export type UserLogin = z.infer<typeof loginSchema>;
+const vehicleInsertionSchema = zod
+    .object({
+        userId: blankCheck(),
+        licensePlate: blankCheck(),
+    })
+    .strict();
 
-export type UserUpdate = z.infer<typeof userUpdateSchema>;
+const vehicleUpdateSchema = zod
+    .object({
+        licensePlate: blankCheck().optional(),
+        cardId: blankCheck().optional(),
+    })
+    .strict();
 
-export type ParkingSlotsUpdate = z.infer<typeof parkingSlotsUpdateSchema>;
+export type UserSignup = zod.infer<typeof signupSchema>;
 
-export type ParkingSlotsInitialization = z.infer<
+export type UserLogin = zod.infer<typeof loginSchema>;
+
+export type UserUpdate = zod.infer<typeof userUpdateSchema>;
+
+export type ParkingSlotsUpdate = zod.infer<typeof parkingSlotsUpdateSchema>;
+
+export type ParkingSlotsInitialization = zod.infer<
     typeof parkingSlotsInitializationSchema
 >;
 
-export type CardUpdate = z.infer<typeof cardUpdateSchema>;
+export type CardUpdate = zod.infer<typeof cardUpdateSchema>;
 
-export type CardInsertion = z.infer<typeof cardInsertionSchema>;
+export type CardInsertion = zod.infer<typeof cardInsertionSchema>;
+
+export type VehicleInsertion = zod.infer<typeof vehicleInsertionSchema>;
+
+export type VehicleUpdate = zod.infer<typeof vehicleUpdateSchema>;
 
 export default {
     ["/users/signup"]: {
@@ -90,9 +115,15 @@ export default {
         ["update"]: parkingSlotsUpdateSchema,
     },
     ["/cards"]: {
-        [RequestMethod.PUT]: cardUpdateSchema,
+        [RequestMethod.POST]: cardUpdateSchema,
     },
     ["/cards/:id"]: {
-        [RequestMethod.POST]: cardInsertionSchema,
+        [RequestMethod.PUT]: cardInsertionSchema,
+    },
+    ["/vehicles"]: {
+        [RequestMethod.POST]: vehicleInsertionSchema,
+    },
+    ["/vehicles/:id"]: {
+        [RequestMethod.PUT]: vehicleUpdateSchema,
     },
 } as {[key: string]: {[method: string]: ZodSchema}};

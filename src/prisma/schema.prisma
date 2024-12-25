@@ -8,50 +8,54 @@ datasource db {
 }
 
 model Card {
-  cardId   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  userId   String?   @db.Uuid
+  cardId   String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId   String?  @db.Uuid
   cardCode String
-  user     User?     @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
-  vehicles  Vehicle[]
+  name     String   @db.VarChar(255)
+  user     User?    @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  vehicle  Vehicle?
 }
 
 model ParkingSlot {
-  slotId Int        @id @db.SmallInt
-  state  SlotStatus @default(UNOCCUPIED)
+  slotId Int       @id @db.SmallInt
+  state  SlotState @default(AVAILABLE)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model User {
   userId        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  username      String    @unique(map: "username_unique") @db.VarChar(255)
+  username      String    @db.VarChar(255)
   role          UserRole  @default(CUSTOMER)
   password      String?
   refreshTokens String[]  @default([])
   createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  email         String    @unique(map: "user_unique_email") @db.VarChar(255)
   cards         Card[]
   vehicles      Vehicle[]
 }
 
 model Vehicle {
-  vehicleId    String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  licensePlate String  @db.VarChar(255)
-  userId       String  @db.Uuid
-  cardId       String? @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  user         User    @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
-  card         Card?   @relation(fields: [cardId], references: [cardId], onDelete: NoAction, onUpdate: NoAction, map: "fk_vehicle_card")
+  vehicleId    String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  licensePlate String   @db.VarChar(255)
+  userId       String   @db.Uuid
+  cardId       String?  @unique @db.Uuid
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  user         User     @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  card         Card?    @relation(fields: [cardId], references: [cardId], onDelete: NoAction, onUpdate: NoAction, map: "fk_vehicle_card")
 }
 
 model Video {
-  videoId String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name    String
-}
-
-enum SlotStatus {
-  OCCUPIED
-  UNOCCUPIED
+  videoId   String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 }
 
 enum UserRole {
   CUSTOMER
   STAFF
+}
+
+enum SlotState {
+  AVAILABLE
+  UNAVAILABLE
 }

@@ -8,7 +8,7 @@ enum ResponseMessage {
     PAYLOAD_IS_REQUIRED = "Payload is required",
     USER_ALREADY_EXISTS = "User already exists",
     USER_ALREADY_LOGIN = "User already login",
-    USER_NOT_FOUND = "User not found",
+    NOT_FOUND = "Not found",
     WRONG_PASSWORD = "Wrong password",
     GENERATE_TOKEN_ERROR = "Generate token error",
     ADMIN_CANNOT_BE_DELETED = "Admin can't be deleted",

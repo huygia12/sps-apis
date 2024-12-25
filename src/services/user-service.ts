@@ -8,9 +8,6 @@ import {AuthToken, ResponseMessage} from "@/common/constants";
 import UserNotFoundError from "@/errors/user/user-not-found";
 import WrongPasswordError from "@/errors/user/wrong-password";
 import jwtService from "./jwt-service";
-import UserAlreadyLoginError from "@/errors/user/user-already-login";
-import MissingTokenError from "@/errors/auth/missing-token";
-import {TokenExpiredError} from "jsonwebtoken";
 import InvalidTokenError from "@/errors/auth/invalid-token";
 import UserCannotBeDeleted from "@/errors/user/user-cannot-be-deleted";
 
@@ -24,19 +21,21 @@ const getUserDTOs = async (params: {role?: UserRole}): Promise<UserDTO[]> => {
         select: {
             userId: true,
             username: true,
+            email: true,
             role: true,
             createdAt: true,
             vehicles: true,
+            cards: true,
         },
     });
 
     return users;
 };
 
-const getUserByUsername = async (username: string): Promise<User | null> => {
+const getUserByEmail = async (email: string): Promise<User | null> => {
     const user = await prisma.user.findFirst({
         where: {
-            username: username,
+            email: email,
         },
     });
 
@@ -44,25 +43,24 @@ const getUserByUsername = async (username: string): Promise<User | null> => {
 };
 
 const getValidUserDTO = async (
-    username: string,
+    email: string,
     password: string
 ): Promise<UserDTO> => {
-    const findByUsername = await getUserByUsername(username);
+    const findByEmail = await getUserByEmail(email);
 
-    if (!findByUsername)
-        throw new UserNotFoundError(ResponseMessage.USER_NOT_FOUND);
+    if (!findByEmail) throw new UserNotFoundError(ResponseMessage.NOT_FOUND);
 
     // Check whether password is valid
     const match =
-        findByUsername.password &&
-        compareSync(password, findByUsername.password);
+        findByEmail.password && compareSync(password, findByEmail.password);
     if (!match) throw new WrongPasswordError(ResponseMessage.WRONG_PASSWORD);
 
     return {
-        userId: findByUsername.userId,
-        username: findByUsername.username,
-        role: findByUsername.role,
-        createdAt: findByUsername.createdAt,
+        userId: findByEmail.userId,
+        username: findByEmail.username,
+        email: findByEmail.email,
+        role: findByEmail.role,
+        createdAt: findByEmail.createdAt,
     };
 };
 
@@ -74,6 +72,7 @@ const getUserDTO = async (userId: string): Promise<UserDTO | null> => {
         select: {
             userId: true,
             username: true,
+            email: true,
             role: true,
             createdAt: true,
             vehicles: true,
@@ -84,51 +83,23 @@ const getUserDTO = async (userId: string): Promise<UserDTO | null> => {
 };
 
 const login = async (
-    prevAT: string | undefined,
     prevRT: string | undefined,
     validPayload: UserLogin
 ): Promise<{refreshToken: string; accessToken: string}> => {
-    //If both token are verified and refresh token is stored in DB, then will not create new token
     try {
-        if (typeof prevAT !== "string")
-            throw new MissingTokenError(ResponseMessage.TOKEN_MISSING);
-        // Get userId from accesstoken payload
-        const userDecoded = jwtService.verifyAuthToken(
-            prevAT.replace("Bearer ", ""),
-            AuthToken.AC
-        ) as UserInToken;
+        if (typeof prevRT == "string") {
+            // Get userId from refreshtoken payload
+            const userDecoded = jwtService.decodeToken(prevRT) as UserInToken;
 
-        const tokenExisting: boolean =
-            prevRT !== undefined &&
-            (await checkIfRefreshTokenExistInDB(prevRT, userDecoded.userId));
-
-        // If refresh token already existed in DB
-        if (tokenExisting) {
-            try {
-                jwtService.verifyAuthToken(prevRT!, AuthToken.RF);
-            } catch (error: any) {
-                // If DB had that refreshToken which has been expired already so must delete that
-                if (error instanceof TokenExpiredError) {
-                    await deleteRefreshToken(prevRT!, userDecoded.userId);
-
-                    // and keep processing the login
-                    throw {};
-                }
-            }
-            // User already been login
-            throw new UserAlreadyLoginError("");
+            // If refresh token already existed in DB so delete it
+            await deleteRefreshToken(prevRT, userDecoded.userId);
         }
     } catch (error: any) {
-        if (error instanceof UserAlreadyLoginError) {
-            // Go in here if user already been login
-            throw new UserAlreadyLoginError(ResponseMessage.USER_ALREADY_LOGIN);
-        }
-
         console.debug(`[user service]: login : error=${JSON.stringify(error)}`);
     }
 
     const validUser: UserDTO = await getValidUserDTO(
-        validPayload.username,
+        validPayload.email,
         validPayload.password
     );
 
@@ -187,8 +158,7 @@ const refreshToken = async (
         //Down here token must be valid
         const userDTO = await getUserDTO(userDecoded.userId);
 
-        if (!userDTO)
-            throw new UserNotFoundError(ResponseMessage.USER_NOT_FOUND);
+        if (!userDTO) throw new UserNotFoundError(ResponseMessage.NOT_FOUND);
 
         await deleteRefreshToken(prevRT, userDecoded.userId);
         const payload: UserInToken = {
@@ -220,14 +190,15 @@ const refreshToken = async (
 };
 
 const insertUser = async (validPayload: UserSignup): Promise<UserDTO> => {
-    const userHolder = await getUserByUsername(validPayload.username);
+    const duplicatedUserAccount = await getUserByEmail(validPayload.username);
 
-    if (userHolder)
+    if (duplicatedUserAccount)
         throw new UserAlreadyExistError(ResponseMessage.USER_ALREADY_EXISTS);
 
     const user = await prisma.user.create({
         data: {
             username: validPayload.username,
+            email: validPayload.email,
             password: validPayload.password
                 ? hashSync(validPayload.password, saltOfRound)
                 : null,
@@ -235,6 +206,7 @@ const insertUser = async (validPayload: UserSignup): Promise<UserDTO> => {
         select: {
             userId: true,
             username: true,
+            email: true,
             role: true,
             createdAt: true,
         },
@@ -246,9 +218,9 @@ const updateUser = async (
     userId: string,
     validPayload: UserUpdate
 ): Promise<UserDTO> => {
-    if (validPayload.username) {
-        const userHolder: User | null = await getUserByUsername(
-            validPayload.username
+    if (validPayload.email) {
+        const userHolder: User | null = await getUserByEmail(
+            validPayload.email
         );
 
         if (userHolder && userHolder.userId !== userId)
@@ -267,6 +239,7 @@ const updateUser = async (
         select: {
             userId: true,
             username: true,
+            email: true,
             role: true,
             createdAt: true,
         },
@@ -280,7 +253,7 @@ const deleteRefreshToken = async (refreshToken: string, userId: string) => {
         .findFirst({where: {userId: userId}})
         .then((user) => {
             if (!user) {
-                throw new UserNotFoundError(ResponseMessage.USER_NOT_FOUND);
+                throw new UserNotFoundError(ResponseMessage.NOT_FOUND);
             }
             return user.refreshTokens.filter((token) => token !== refreshToken);
         });
@@ -320,7 +293,7 @@ const clearUserRefreshTokens = async (userId: string) => {
 const deleteUser = async (userId: string) => {
     const user = await getUserDTO(userId);
 
-    if (!user) throw new UserNotFoundError(ResponseMessage.USER_NOT_FOUND);
+    if (!user) throw new UserNotFoundError(ResponseMessage.NOT_FOUND);
 
     if (user.role === UserRole.STAFF)
         throw new UserCannotBeDeleted(ResponseMessage.ADMIN_CANNOT_BE_DELETED);

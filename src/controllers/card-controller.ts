@@ -5,7 +5,10 @@ import {Request, Response} from "express";
 import {StatusCodes} from "http-status-codes";
 
 const getCards = async (req: Request, res: Response) => {
-    const cards = await cardService.getCards();
+    const available = Boolean(req.query.available);
+    const cards = await cardService.getCards({
+        userId: available ? null : undefined,
+    });
 
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
@@ -14,20 +17,21 @@ const getCards = async (req: Request, res: Response) => {
 };
 
 const insertCard = async (req: Request, res: Response) => {
-    const newCard = req.body as CardInsertion;
+    const reqBody = req.body as CardInsertion;
 
-    await cardService.insertCard(newCard);
+    const card = await cardService.insertCard(reqBody);
 
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
+        info: card,
     });
 };
 
 const updateCard = async (req: Request, res: Response) => {
-    const cardId = req.params.cardId as string;
-    const cardUpdate = req.body as CardUpdate;
+    const cardId = req.params.id as string;
+    const reqBody = req.body as CardUpdate;
 
-    const card = await cardService.updateCard(cardId, cardUpdate);
+    const card = await cardService.updateCard(cardId, reqBody);
 
     res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
@@ -36,7 +40,7 @@ const updateCard = async (req: Request, res: Response) => {
 };
 
 const deleteCard = async (req: Request, res: Response) => {
-    const cardId = req.params.cardId as string;
+    const cardId = req.params.id as string;
 
     await cardService.deleteCard(cardId);
 

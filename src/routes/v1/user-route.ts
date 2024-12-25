@@ -26,13 +26,17 @@ router.put(
     expressSchemaValidator("/users/:id"),
     userController.updateInfo
 );
-router.delete("/:id", authMiddleware.isAuthorized, userController.deleteUser);
+router.delete(
+    "/:id",
+    authMiddleware.isAuthorized,
+    userController.deleteCustomer
+);
 router.get("/:id", authMiddleware.isAuthorized, userController.getUser);
 router.get(
     "/",
     authMiddleware.isAuthorized,
     authMiddleware.isAdmin,
-    userController.getUsers
+    userController.getCustomers
 );
 
 export default router;
