@@ -46,8 +46,8 @@ model Vehicle {
 
 model Video {
   videoId   String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name      String
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  url       String
+  createdAt DateTime @db.Timestamptz(6)
 }
 
 enum UserRole {
