@@ -1,10 +1,37 @@
 import {ResponseMessage} from "@/common/constants";
 import prisma from "@/common/prisma-client";
 import {CardInsertion, CardUpdate} from "@/common/schemas";
+import {CardVehicle} from "@/common/types";
 import CardNotFoundError from "@/errors/card/card-not-found";
+import CardNotLinkedError from "@/errors/card/card-not-linked";
 import {Card} from "@prisma/client";
 
+const getCardLinkedToVehicle = async (
+    cardCode: string
+): Promise<CardVehicle> => {
+    const rawData = await prisma.card.findFirst({
+        where: {
+            cardCode: cardCode,
+        },
+        include: {
+            vehicle: true,
+        },
+    });
+
+    if (!rawData) {
+        throw new CardNotFoundError(`Card with id ${cardCode} cannot be found`);
+    } else if (!rawData.vehicle) {
+        throw new CardNotLinkedError(`Card is not linked to a vehicle`);
+    }
+
+    return {
+        cardId: rawData.cardId,
+        licensePlate: rawData.vehicle.licensePlate,
+    };
+};
+
 const getCards = async (params: {userId?: null | string}): Promise<Card[]> => {
+    console.log(params);
     const cards = await prisma.card.findMany({
         where: {
             userId: params.userId,
@@ -91,4 +118,5 @@ export default {
     insertCard,
     deleteCard,
     isOccupied,
+    getCardLinkedToVehicle,
 };

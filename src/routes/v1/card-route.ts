@@ -25,5 +25,6 @@ router.delete(
     authMiddleware.isAdmin,
     cardController.deleteCard
 );
+router.get("/linked-vehicle", cardController.validateCard);
 
 export default router;

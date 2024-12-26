@@ -3,13 +3,14 @@ import path from "path";
 import videoService from "@/services/video-service";
 import {ResponseMessage} from "@/common/constants";
 
-const VIDEOS_DIR = "../../../uploads";
+const VIDEOS_DIR = "../../uploads";
 
 const uploadVideo = async (req: Request, res: Response) => {
     if (!req.file) {
         return res.status(400).json({message: "No file uploaded"});
     }
     const fileName = req.file.filename as string;
+    console.log(__dirname, VIDEOS_DIR, fileName);
     const videoPath = path.join(__dirname, VIDEOS_DIR, fileName);
 
     const dateString = fileName.split("_")[1];
@@ -21,7 +22,6 @@ const uploadVideo = async (req: Request, res: Response) => {
     const second = parseInt(dateString.slice(12, 14), 10);
 
     const createdAt = new Date(year, month, day, hour, minute, second);
-    console.log(createdAt);
 
     await videoService.insertVideo({createdAt: createdAt, url: videoPath});
 

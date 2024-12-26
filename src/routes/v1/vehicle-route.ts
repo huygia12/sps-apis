@@ -1,7 +1,7 @@
 import express from "express";
-import cardsVehiclesController from "@/controllers/vehicle-controller";
+import vehiclesController from "@/controllers/vehicle-controller";
 const router = express.Router();
 
-router.get("/", cardsVehiclesController.getVehicleLinkedToCard);
+router.post("/", vehiclesController.insertVehicle);
 
 export default router;

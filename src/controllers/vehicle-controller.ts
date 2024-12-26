@@ -9,16 +9,6 @@ import RunoutOfCardError from "@/errors/card/run-out-of-card";
 import UserNotFoundError from "@/errors/user/user-not-found";
 import CardOccupiedError from "@/errors/card/card-occupied";
 
-const getVehicleLinkedToCard = async (req: Request, res: Response) => {
-    const cardId = req.query.cardId as string;
-    const vehicles = await vehicleService.getCardLinkedToVehicle(cardId);
-
-    res.status(StatusCodes.OK).json({
-        message: ResponseMessage.SUCCESS,
-        info: vehicles,
-    });
-};
-
 const updateVehicle = async (req: Request, res: Response) => {
     const vehicleId = req.params.id as string;
     const reqBody = req.body as VehicleUpdate;
@@ -41,6 +31,7 @@ const insertVehicle = async (req: Request, res: Response) => {
     if (!user) throw new UserNotFoundError(ResponseMessage.NOT_FOUND);
 
     const availableCards = await cardService.getCards({userId: null});
+
     if (availableCards.length <= 0)
         throw new RunoutOfCardError(
             `Run out of cards, please insert more before continuing`
@@ -60,7 +51,6 @@ const insertVehicle = async (req: Request, res: Response) => {
 };
 
 export default {
-    getVehicleLinkedToCard,
     insertVehicle,
     updateVehicle,
 };

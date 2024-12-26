@@ -3,11 +3,13 @@ import {CardInsertion, CardUpdate} from "@/common/schemas";
 import cardService from "@/services/card-service";
 import {Request, Response} from "express";
 import {StatusCodes} from "http-status-codes";
+import axios from "axios";
+import config from "@/common/app-config";
 
 const getCards = async (req: Request, res: Response) => {
-    const available = Boolean(req.query.available);
+    const available = Number(req.query.available);
     const cards = await cardService.getCards({
-        userId: available ? null : undefined,
+        userId: available == 1 ? null : undefined,
     });
 
     res.status(StatusCodes.OK).json({
@@ -49,9 +51,40 @@ const deleteCard = async (req: Request, res: Response) => {
     });
 };
 
+const validateCard = async (req: Request, res: Response) => {
+    let cardId = req.query.cardId as string;
+    if (typeof cardId === "string") {
+        cardId = cardId.trim();
+        console.log(cardId);
+    }
+    const vehicle = await cardService.getCardLinkedToVehicle(cardId);
+
+    try {
+        await axios.post(
+            config.CAMERA_SERVER + `/validate-car-plate?timeout=5000`,
+            {
+                plate_number: vehicle.licensePlate,
+            }
+        );
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
+                message: "Failed to validate car license plate",
+            });
+        } else {
+            throw new Error("Unexpected error: " + error);
+        }
+    }
+
+    return res.status(StatusCodes.OK).json({
+        message: ResponseMessage.SUCCESS,
+    });
+};
+
 export default {
     getCards,
     insertCard,
     updateCard,
     deleteCard,
+    validateCard,
 };

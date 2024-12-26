@@ -5,6 +5,7 @@ type Config = {
     SERVER_PORT: number;
     AT_KEY: string;
     RT_KEY: string;
+    CAMERA_SERVER: string;
 };
 
 const envConfig = dotenv.config({
@@ -28,6 +29,7 @@ const config: Config = {
     SERVER_PORT: parseInt(process.env.PORT, 10),
     AT_KEY: `${process.env.AT_SECRET_KEY}`,
     RT_KEY: `${process.env.RT_SECRET_KEY}`,
+    CAMERA_SERVER: `https://leading-huge-jackal.ngrok-free.app/api/v1`,
 };
 
 export default config;
