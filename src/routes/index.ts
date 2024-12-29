@@ -14,7 +14,7 @@ const space = (req: Request, res: Response, next: NextFunction) => {
 
 router.use("/api/v1/users", space, userRoute);
 router.use("/api/v1/cards", space, cardRoute);
-router.use("/api/v1/publish-video", space, videoRoute);
+router.use("/api/v1/videos", space, videoRoute);
 router.use("/api/v1/vehicles", space, vehicleRoute);
 router.use("/api/v1/parkingSlots", space, parkingSlotsRoute);
 router.get("/healthcheck", (req: Request, res: Response) =>
