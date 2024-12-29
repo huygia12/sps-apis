@@ -50,7 +50,18 @@ const insertVehicle = async (req: Request, res: Response) => {
     });
 };
 
+const deleteVehicle = async (req: Request, res: Response) => {
+    const vehicleId = req.params.id as string;
+
+    await vehicleService.deleteVehicle(vehicleId);
+
+    res.status(StatusCodes.OK).json({
+        message: ResponseMessage.SUCCESS,
+    });
+};
+
 export default {
     insertVehicle,
     updateVehicle,
+    deleteVehicle,
 };

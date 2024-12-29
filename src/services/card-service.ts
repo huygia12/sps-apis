@@ -4,7 +4,8 @@ import {CardInsertion, CardUpdate} from "@/common/schemas";
 import {CardVehicle} from "@/common/types";
 import CardNotFoundError from "@/errors/card/card-not-found";
 import CardNotLinkedError from "@/errors/card/card-not-linked";
-import {Card} from "@prisma/client";
+import RunoutOfCardError from "@/errors/card/run-out-of-card";
+import {Card, Vehicle} from "@prisma/client";
 
 const getCardLinkedToVehicle = async (
     cardCode: string
@@ -19,8 +20,10 @@ const getCardLinkedToVehicle = async (
     });
 
     if (!rawData) {
+        console.log(`card not found`);
         throw new CardNotFoundError(`Card with id ${cardCode} cannot be found`);
     } else if (!rawData.vehicle) {
+        console.log(`card is not link to vehicle`);
         throw new CardNotLinkedError(`Card is not linked to a vehicle`);
     }
 
@@ -30,8 +33,22 @@ const getCardLinkedToVehicle = async (
     };
 };
 
+const getCard = async (
+    cardId: string
+): Promise<(Card & {vehicle: Vehicle | null}) | null> => {
+    const card = await prisma.card.findFirst({
+        where: {
+            cardId: cardId,
+        },
+        include: {
+            vehicle: true,
+        },
+    });
+
+    return card;
+};
+
 const getCards = async (params: {userId?: null | string}): Promise<Card[]> => {
-    console.log(params);
     const cards = await prisma.card.findMany({
         where: {
             userId: params.userId,
@@ -105,10 +122,35 @@ const insertCard = async (validPayload: CardInsertion): Promise<Card> => {
 };
 
 const deleteCard = async (cardId: string): Promise<void> => {
-    await prisma.card.delete({
-        where: {
-            cardId: cardId,
-        },
+    console.log("card to delete ", cardId);
+    const cardToDelete = await getCard(cardId);
+    if (!cardToDelete) throw new CardNotFoundError(ResponseMessage.NOT_FOUND);
+
+    const availableCards = await getCards({userId: null});
+    if (availableCards.length <= 0)
+        throw new RunoutOfCardError(
+            `Run out of cards, please insert more before continue deleting`
+        );
+
+    const newCard = availableCards[0];
+
+    await prisma.$transaction(async (prisma) => {
+        // update new card for the vehicle
+        if (cardToDelete.vehicle)
+            await prisma.vehicle.update({
+                where: {
+                    cardId: cardId,
+                },
+                data: {
+                    cardId: newCard.cardId,
+                },
+            });
+
+        await prisma.card.delete({
+            where: {
+                cardId: cardId,
+            },
+        });
     });
 };
 

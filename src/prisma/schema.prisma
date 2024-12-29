@@ -9,10 +9,10 @@ datasource db {
 
 model Card {
   cardId   String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  userId   String?  @db.Uuid
+  userId   String?  @db.Uuid 
   cardCode String
   name     String   @db.VarChar(255)
-  user     User?    @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  user     User?    @relation(fields: [userId], references: [userId], onDelete: SetNull, onUpdate: NoAction)
   vehicle  Vehicle?
 }
 
@@ -40,8 +40,8 @@ model Vehicle {
   userId       String   @db.Uuid
   cardId       String?  @unique @db.Uuid
   createdAt    DateTime @default(now()) @db.Timestamptz(6)
-  user         User     @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
-  card         Card?    @relation(fields: [cardId], references: [cardId], onDelete: NoAction, onUpdate: NoAction, map: "fk_vehicle_card")
+  user         User     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  card         Card?    @relation(fields: [cardId], references: [cardId], onDelete: SetNull, onUpdate: NoAction, map: "fk_vehicle_card")
 }
 
 model Video {

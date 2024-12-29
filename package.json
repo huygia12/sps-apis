@@ -16,6 +16,7 @@
         "prettier": "prettier --write .",
         "db-pull": "prisma db pull --schema src/prisma/schema.prisma",
         "db-generate": "prisma generate --schema ./src/prisma/schema.prisma",
+        "db-push": "prisma migrate dev --schema ./src/prisma/schema.prisma",
         "db-validate": "prisma validate --schema ./src/prisma/schema.prisma",
         "db-format": "prisma format --schema ./src/prisma/schema.prisma"
     },

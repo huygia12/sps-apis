@@ -34,21 +34,53 @@ const insertVehicle = async (
     return data;
 };
 
+const deleteVehicle = async (vehicleId: string): Promise<void> => {
+    await prisma.$transaction(async (prisma) => {
+        const data = await prisma.vehicle.delete({
+            where: {
+                vehicleId: vehicleId,
+            },
+            select: {
+                cardId: true,
+            },
+        });
+
+        if (data.cardId) {
+            //update userId column in Card table
+            await prisma.card.update({
+                where: {
+                    cardId: data.cardId,
+                },
+                data: {
+                    userId: null,
+                },
+            });
+        }
+    });
+};
+
 const updateVehicle = async (
     vehicleId: string,
     validPayload: VehicleUpdate
-): Promise<void> => {
-    await prisma.vehicle.update({
+): Promise<Vehicle> => {
+    const vehicle = await prisma.vehicle.update({
         where: {
             vehicleId: vehicleId,
         },
         data: {
-            ...validPayload,
+            licensePlate: validPayload.licensePlate,
+            cardId: validPayload.cardId,
+        },
+        include: {
+            card: true,
         },
     });
+
+    return vehicle;
 };
 
 export default {
     insertVehicle,
     updateVehicle,
+    deleteVehicle,
 };

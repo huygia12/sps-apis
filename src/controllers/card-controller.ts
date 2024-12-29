@@ -61,7 +61,7 @@ const validateCard = async (req: Request, res: Response) => {
 
     try {
         await axios.post(
-            config.CAMERA_SERVER + `/validate-car-plate?timeout=5000`,
+            config.CAMERA_SERVER_API + `/validate-car-plate?timeout=5000`,
             {
                 plate_number: vehicle.licensePlate,
             }

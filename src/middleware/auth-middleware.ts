@@ -13,24 +13,17 @@ const isAuthorized = (req: Request, res: Response, next: NextFunction) => {
 
     checkAuth(accessToken);
 
-    console.debug(`[auth-middleware] Check authorization succeed`);
     next();
 };
 
 const checkAuth = (token: string | undefined) => {
     if (typeof token !== "string") {
-        console.debug(
-            `[auth-middleware] Check authorization failure: missing token`
-        );
         throw new MissingTokenError(ResponseMessage.TOKEN_MISSING);
     }
 
     try {
         jwtService.verifyAuthToken(token.replace("Bearer ", ""), AuthToken.AC);
     } catch {
-        console.debug(
-            `[auth-middleware]: Check authorization has been failed: invalid token`
-        );
         throw new InvalidTokenError(ResponseMessage.TOKEN_INVALID);
     }
 };
@@ -40,9 +33,6 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
         req.headers["authorization"];
 
     if (typeof accessToken !== "string") {
-        console.debug(
-            `[auth-middleware]: Check request from admin has been failed: missing token`
-        );
         throw new MissingTokenError(ResponseMessage.TOKEN_MISSING);
     }
 
@@ -51,13 +41,9 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
     ) as UserInToken;
 
     if (user.role !== UserRole.STAFF) {
-        console.debug(
-            `[auth-middleware] Check request from admin has been failed: access denied`
-        );
         throw new AccessDenided(ResponseMessage.ACCESS_DENIED);
     }
 
-    console.debug(`[auth-middleware] Check request from admin succeed`);
     next();
 };
 
