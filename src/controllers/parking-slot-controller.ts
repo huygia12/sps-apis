@@ -1,6 +1,7 @@
 import {ResponseMessage} from "@/common/constants";
-import {ParkingSlotsInitialization, ParkingSlotsUpdate} from "@/common/schemas";
+import {ParkingSlotsInitialization} from "@/common/schemas";
 import parkingSlotService from "@/services/parking-slot-service";
+import socketService from "@/services/socket-service";
 import {Request, Response} from "express";
 import {StatusCodes} from "http-status-codes";
 
@@ -23,11 +24,24 @@ const initParkingSlots = async (req: Request, res: Response) => {
 };
 
 const updateParkingSlots = async (req: Request, res: Response) => {
-    const parkingStates = req.body as ParkingSlotsUpdate;
+    const statesString = req.body.states as string;
+    console.log(statesString, statesString.length);
 
-    await parkingSlotService.updateSlotsStatus(parkingStates);
+    if (!parkingSlotService.isValidSlotStateStringFormat(statesString)) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            message: `States must be in format n,n,n,n,n,n (n can only be 0 or 1)`,
+        });
+    }
 
-    res.status(StatusCodes.OK).json({
+    const newStates = parkingSlotService.convertStringToSLotState(statesString);
+    parkingSlotService.updateSlotsStatus(newStates); //update db
+    const updateSlot = parkingSlotService.getUpdateSlot(newStates);
+    if (updateSlot.length > 0) {
+        console.log(updateSlot);
+        socketService.emitToParkingRoom({parkingStates: updateSlot});
+    }
+
+    return res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
     });
 };

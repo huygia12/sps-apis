@@ -1,4 +1,4 @@
-import type {UserRole} from "@prisma/client";
+import type {ParkingSlot, UserRole} from "@prisma/client";
 
 export interface UserDTO {
     userId: string;
@@ -17,4 +17,14 @@ export interface UserInToken {
 export interface CardVehicle {
     cardId: string;
     licensePlate: string;
+    username: string;
+}
+
+export interface ClientEvents {
+    "user:join": () => void;
+    "user:leave": () => void;
+}
+
+export interface ServerEvents {
+    "parking-slot:update": (payload: {parkingStates: ParkingSlot[]}) => void;
 }

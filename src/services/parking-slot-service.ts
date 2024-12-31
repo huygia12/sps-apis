@@ -1,9 +1,25 @@
 import prisma from "@/common/prisma-client";
-import {ParkingSlotsInitialization, ParkingSlotsUpdate} from "@/common/schemas";
-import {ParkingSlot} from "@prisma/client";
+import {ParkingSlotsInitialization} from "@/common/schemas";
+import {ParkingSlot, SlotState} from "@prisma/client";
+
+interface SlotDictionary {
+    [key: string]: SlotState;
+}
+
+const slots: SlotDictionary = {
+    [`1`]: SlotState.AVAILABLE,
+    [`2`]: SlotState.AVAILABLE,
+    [`3`]: SlotState.AVAILABLE,
+    [`4`]: SlotState.AVAILABLE,
+    [`5`]: SlotState.AVAILABLE,
+    [`6`]: SlotState.AVAILABLE,
+};
 
 const getSlotsStatus = async (): Promise<ParkingSlot[]> => {
     const slotsStatus = await prisma.parkingSlot.findMany();
+    slotsStatus.forEach((slot) => {
+        slots[`${slot.slotId}`] = slot.state;
+    });
 
     return slotsStatus;
 };
@@ -17,7 +33,7 @@ const createSlots = async (
 };
 
 const updateSlotsStatus = async (
-    validPayload: ParkingSlotsUpdate
+    validPayload: ParkingSlot[]
 ): Promise<void> => {
     const query = `
         UPDATE "ParkingSlot"
@@ -31,6 +47,32 @@ const updateSlotsStatus = async (
     await prisma.$executeRawUnsafe(query);
 };
 
+const convertStringToSLotState = (input: string): ParkingSlot[] => {
+    return input.split(",").map((e, index) => {
+        return {
+            state: e == `1` ? SlotState.UNAVAILABLE : SlotState.AVAILABLE,
+            slotId: index + 1,
+        };
+    });
+};
+
+const getUpdateSlot = (parkingSlots: ParkingSlot[]): ParkingSlot[] => {
+    const updateSlot: ParkingSlot[] = [];
+
+    parkingSlots.forEach((slot) => {
+        if (slots[slot.slotId] !== slot.state) {
+            updateSlot.push(slot);
+            slots[slot.slotId] = slot.state;
+        }
+    });
+    return updateSlot;
+};
+
+const isValidSlotStateStringFormat = (input: string) => {
+    const regex = /^(0|1)(,(0|1)){5}$/;
+    return regex.test(input);
+};
+
 const getIds = (data: {slotId: number}[]) => {
     return data.map((item) => item.slotId);
 };
@@ -41,4 +83,11 @@ const getInsertSlotsObject = (numberOfSlots: number) => {
     }));
 };
 
-export default {getSlotsStatus, updateSlotsStatus, createSlots};
+export default {
+    getSlotsStatus,
+    updateSlotsStatus,
+    createSlots,
+    convertStringToSLotState,
+    isValidSlotStateStringFormat,
+    getUpdateSlot,
+};

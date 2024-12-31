@@ -3,7 +3,7 @@ import {CardInsertion, CardUpdate} from "@/common/schemas";
 import cardService from "@/services/card-service";
 import {Request, Response} from "express";
 import {StatusCodes} from "http-status-codes";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 import config from "@/common/app-config";
 
 const getCards = async (req: Request, res: Response) => {
@@ -53,19 +53,23 @@ const deleteCard = async (req: Request, res: Response) => {
 
 const validateCard = async (req: Request, res: Response) => {
     let cardId = req.query.cardId as string;
-    if (typeof cardId === "string") {
+    if (cardId) {
         cardId = cardId.trim();
-        console.log(cardId);
     }
     const vehicle = await cardService.getCardLinkedToVehicle(cardId);
 
     try {
-        await axios.post(
-            config.CAMERA_SERVER_API + `/validate-car-plate?timeout=5000`,
-            {
-                plate_number: vehicle.licensePlate,
-            }
-        );
+        // const scanResult = await axios.post<{status: "valid" | "invalid"}>(
+        //     config.CAMERA_SERVER_API + `?timeout=5000`,
+        //     {
+        //         plate_number: vehicle.licensePlate,
+        //     },
+        //     {
+        //         timeout: 30000,
+        //     }
+        // );
+        // console.log(scanResult.data.status);
+        // if (scanResult.data.status == "invalid") throw new AxiosError();
     } catch (error) {
         if (axios.isAxiosError(error)) {
             return res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
@@ -78,6 +82,7 @@ const validateCard = async (req: Request, res: Response) => {
 
     return res.status(StatusCodes.OK).json({
         message: ResponseMessage.SUCCESS,
+        info: vehicle.username,
     });
 };
 

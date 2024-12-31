@@ -4,11 +4,7 @@ import {upload} from "@/common/multer-config";
 import {authMiddleware} from "@/middleware/auth-middleware";
 const router = express.Router();
 
-router.post(
-    "/publish-video",
-    upload.single("video"),
-    fileController.uploadVideo
-);
+router.post("/publish", upload.single("video"), fileController.uploadVideo);
 router.get(
     "/",
     authMiddleware.isAuthorized,
