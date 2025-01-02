@@ -1,19 +1,14 @@
 import {ResponseMessage} from "@/common/constants";
 import {Request, Response} from "express";
 import vehicleService from "@/services/vehicle-service";
-import cardService from "@/services/card-service";
 import userService from "@/services/user-service";
 import {StatusCodes} from "http-status-codes";
 import {VehicleInsertion, VehicleUpdate} from "@/common/schemas";
 import UserNotFoundError from "@/errors/user/user-not-found";
-import CardOccupiedError from "@/errors/card/card-occupied";
 
 const updateVehicle = async (req: Request, res: Response) => {
     const vehicleId = req.params.id as string;
     const reqBody = req.body as VehicleUpdate;
-
-    if (reqBody.cardId && (await cardService.isOccupied(reqBody.cardId)))
-        throw new CardOccupiedError(`Card is occupied`);
 
     const vehicle = await vehicleService.updateVehicle(vehicleId, reqBody);
 
