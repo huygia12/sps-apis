@@ -189,7 +189,10 @@ const refreshToken = async (
     }
 };
 
-const insertUser = async (validPayload: UserSignup): Promise<UserDTO> => {
+const insertUser = async (
+    validPayload: UserSignup,
+    role: UserRole
+): Promise<UserDTO> => {
     const duplicatedUserAccount = await getUserByEmail(validPayload.username);
 
     if (duplicatedUserAccount)
@@ -202,6 +205,7 @@ const insertUser = async (validPayload: UserSignup): Promise<UserDTO> => {
             password: validPayload.password
                 ? hashSync(validPayload.password, saltOfRound)
                 : null,
+            role: role,
         },
         select: {
             userId: true,
@@ -295,8 +299,8 @@ const deleteUser = async (userId: string) => {
 
     if (!user) throw new UserNotFoundError(ResponseMessage.NOT_FOUND);
 
-    if (user.role === UserRole.STAFF)
-        throw new UserCannotBeDeleted(ResponseMessage.ADMIN_CANNOT_BE_DELETED);
+    if (user.role == UserRole.ADMIN)
+        throw new UserCannotBeDeleted("This user can't be deleted");
 
     await prisma.user.delete({
         where: {

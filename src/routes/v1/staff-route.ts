@@ -4,14 +4,14 @@ import {authMiddleware} from "@/middleware/auth-middleware";
 import {expressSchemaValidator} from "@/middleware/schema-validator";
 
 const router = express.Router();
+router.use(authMiddleware.isAuthorized, authMiddleware.isAdmin);
 
+router.get("/", userController.getStaffs);
 router.post(
-    "/login",
-    expressSchemaValidator("/users/login"),
-    userController.login
+    "/signup",
+    expressSchemaValidator("/staffs/signup"),
+    userController.insertStaff
 );
-router.get("/logout", userController.logout);
-router.get("/refresh", userController.refreshToken);
-router.get("/:id", authMiddleware.isAuthorized, userController.getUser);
+router.delete("/:id", userController.deleteUser);
 
 export default router;

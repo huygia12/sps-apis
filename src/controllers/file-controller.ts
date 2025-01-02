@@ -67,7 +67,6 @@ const getVideos = async (req: Request, res: Response) => {
 const getVideo = (req: Request, res: Response) => {
     const fileName = req.params.id as string;
     const videoPath = path.join(__dirname, VIDEOS_DIR, `${fileName}.mp4`);
-    console.log(videoPath);
 
     if (!fs.existsSync(videoPath)) {
         return res.status(404).send("Video not found");

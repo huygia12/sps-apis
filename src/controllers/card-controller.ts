@@ -59,17 +59,17 @@ const validateCard = async (req: Request, res: Response) => {
     const vehicle = await cardService.getCardLinkedToVehicle(cardId);
 
     try {
-        // const scanResult = await axios.post<{status: "valid" | "invalid"}>(
-        //     config.CAMERA_SERVER_API + `?timeout=5000`,
-        //     {
-        //         plate_number: vehicle.licensePlate,
-        //     },
-        //     {
-        //         timeout: 30000,
-        //     }
-        // );
-        // console.log(scanResult.data.status);
-        // if (scanResult.data.status == "invalid") throw new AxiosError();
+        const scanResult = await axios.post<{status: "valid" | "invalid"}>(
+            config.CAMERA_SERVER_API + `?timeout=5000`,
+            {
+                plate_number: vehicle.licensePlate,
+            },
+            {
+                timeout: 30000,
+            }
+        );
+        console.log(scanResult.data.status);
+        if (scanResult.data.status == "invalid") throw new AxiosError();
     } catch (error) {
         if (axios.isAxiosError(error)) {
             return res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({

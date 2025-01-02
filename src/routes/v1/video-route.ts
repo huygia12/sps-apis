@@ -8,13 +8,13 @@ router.post("/publish", upload.single("video"), fileController.uploadVideo);
 router.get(
     "/",
     authMiddleware.isAuthorized,
-    authMiddleware.isAdmin,
+    authMiddleware.isStaffOrAdmin,
     fileController.getVideos
 );
 router.get(
     "/:id",
     authMiddleware.isAuthorized,
-    authMiddleware.isAdmin,
+    authMiddleware.isStaffOrAdmin,
     fileController.getVideo
 );
 

@@ -1,18 +1,17 @@
 import prisma from "@/common/prisma-client";
 import {VehicleInsertion, VehicleUpdate} from "@/common/schemas";
 import {UserDTO} from "@/common/types";
-import {Card, Vehicle} from "@prisma/client";
+import {Vehicle} from "@prisma/client";
 
 const insertVehicle = async (
     validPayload: VehicleInsertion,
-    card: Card,
     user: UserDTO
 ): Promise<Vehicle> => {
     const data = await prisma.$transaction(async (prisma) => {
         const vehicle = await prisma.vehicle.create({
             data: {
                 licensePlate: validPayload.licensePlate,
-                cardId: card.cardId,
+                cardId: validPayload.cardId,
                 userId: user.userId,
             },
             include: {
@@ -22,7 +21,7 @@ const insertVehicle = async (
 
         await prisma.card.update({
             where: {
-                cardId: card.cardId,
+                cardId: validPayload.cardId,
             },
             data: {
                 userId: user.userId,
@@ -63,20 +62,51 @@ const updateVehicle = async (
     vehicleId: string,
     validPayload: VehicleUpdate
 ): Promise<Vehicle> => {
-    const vehicle = await prisma.vehicle.update({
-        where: {
-            vehicleId: vehicleId,
-        },
-        data: {
-            licensePlate: validPayload.licensePlate,
-            cardId: validPayload.cardId,
-        },
-        include: {
-            card: true,
-        },
+    const data = await prisma.$transaction(async (prisma) => {
+        let vehicle = await prisma.vehicle.findFirst({
+            where: {
+                vehicleId: vehicleId,
+            },
+        });
+
+        if (!vehicle || vehicle.cardId == null)
+            throw new Error("Cannot update vehicle");
+
+        await prisma.card.update({
+            where: {
+                cardId: vehicle.cardId,
+            },
+            data: {
+                userId: null,
+            },
+        });
+
+        vehicle = await prisma.vehicle.update({
+            where: {
+                vehicleId: vehicleId,
+            },
+            data: {
+                licensePlate: validPayload.licensePlate,
+                cardId: validPayload.cardId,
+            },
+            include: {
+                card: true,
+            },
+        });
+
+        await prisma.card.update({
+            where: {
+                cardId: validPayload.cardId,
+            },
+            data: {
+                userId: vehicle.userId,
+            },
+        });
+
+        return vehicle;
     });
 
-    return vehicle;
+    return data;
 };
 
 export default {

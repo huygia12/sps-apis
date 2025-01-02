@@ -11,7 +11,7 @@ const signupSchema = zod
     .object({
         username: blankCheck(),
         email: blankCheck(zod.string().email()),
-        password: blankCheck().optional(),
+        password: blankCheck(zod.string().min(6)).optional(),
     })
     .strict();
 
@@ -63,6 +63,7 @@ const cardInsertionSchema = zod
 const vehicleInsertionSchema = zod
     .object({
         userId: blankCheck(),
+        cardId: blankCheck(),
         licensePlate: blankCheck(),
     })
     .strict();
@@ -95,17 +96,17 @@ export type VehicleInsertion = zod.infer<typeof vehicleInsertionSchema>;
 export type VehicleUpdate = zod.infer<typeof vehicleUpdateSchema>;
 
 export default {
-    ["/users/signup"]: {
-        [RequestMethod.POST]: signupSchema,
-    },
     ["/users/login"]: {
         [RequestMethod.POST]: loginSchema,
     },
-    ["/users/:id"]: {
+    ["/customers/signup"]: {
+        [RequestMethod.POST]: signupSchema,
+    },
+    ["/customers/:id"]: {
         [RequestMethod.PUT]: userUpdateSchema,
     },
-    ["users"]: {
-        ["update"]: userUpdateSchema,
+    ["/staffs/signup"]: {
+        [RequestMethod.POST]: signupSchema,
     },
     ["/parkingSlots"]: {
         [RequestMethod.PUT]: parkingSlotsUpdateSchema,

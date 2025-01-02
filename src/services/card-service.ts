@@ -132,7 +132,6 @@ const insertCard = async (validPayload: CardInsertion): Promise<Card> => {
 };
 
 const deleteCard = async (cardId: string): Promise<void> => {
-    console.log("card to delete ", cardId);
     const cardToDelete = await getCard(cardId);
     if (!cardToDelete) throw new CardNotFoundError(ResponseMessage.NOT_FOUND);
 

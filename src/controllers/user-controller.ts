@@ -16,10 +16,21 @@ import {UserRole} from "@prisma/client";
  * @param {Request} req
  * @param {Response} res
  */
-const signup = async (req: Request, res: Response) => {
+const insertCustomer = async (req: Request, res: Response) => {
     const userSignup = req.body as UserSignup;
 
-    const user = await userService.insertUser(userSignup);
+    const user = await userService.insertUser(userSignup, UserRole.CUSTOMER);
+
+    res.status(StatusCodes.CREATED).json({
+        message: ResponseMessage.SUCCESS,
+        info: user,
+    });
+};
+
+const insertStaff = async (req: Request, res: Response) => {
+    const userSignup = req.body as UserSignup;
+
+    const user = await userService.insertUser(userSignup, UserRole.STAFF);
 
     res.status(StatusCodes.CREATED).json({
         message: ResponseMessage.SUCCESS,
@@ -150,11 +161,6 @@ const getUser = async (req: Request, res: Response) => {
     });
 };
 
-/**
- * Can only get customers
- * @param req
- * @param res
- */
 const getCustomers = async (req: Request, res: Response) => {
     const users: UserDTO[] = await userService.getUserDTOs({
         role: UserRole.CUSTOMER,
@@ -166,7 +172,18 @@ const getCustomers = async (req: Request, res: Response) => {
     });
 };
 
-const deleteCustomer = async (req: Request, res: Response) => {
+const getStaffs = async (req: Request, res: Response) => {
+    const users: UserDTO[] = await userService.getUserDTOs({
+        role: UserRole.STAFF,
+    });
+
+    res.status(StatusCodes.OK).json({
+        message: ResponseMessage.SUCCESS,
+        info: users,
+    });
+};
+
+const deleteUser = async (req: Request, res: Response) => {
     const userId = req.params.id as string;
 
     await userService.deleteUser(userId);
@@ -177,12 +194,14 @@ const deleteCustomer = async (req: Request, res: Response) => {
 };
 
 export default {
-    signup,
+    insertCustomer,
+    insertStaff,
     login,
     logout,
     refreshToken,
     updateInfo,
     getUser,
     getCustomers,
-    deleteCustomer,
+    getStaffs,
+    deleteUser,
 };

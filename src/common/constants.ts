@@ -11,7 +11,6 @@ enum ResponseMessage {
     NOT_FOUND = "Not found",
     WRONG_PASSWORD = "Wrong password",
     GENERATE_TOKEN_ERROR = "Generate token error",
-    ADMIN_CANNOT_BE_DELETED = "Admin can't be deleted",
     UNEXPECTED_ERROR = "Unexpected Error",
 }
 

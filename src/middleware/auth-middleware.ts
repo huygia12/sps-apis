@@ -28,6 +28,29 @@ const checkAuth = (token: string | undefined) => {
     }
 };
 
+const isStaffOrAdmin = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const accessToken: string | string[] | undefined =
+        req.headers["authorization"];
+
+    if (typeof accessToken !== "string") {
+        throw new MissingTokenError(ResponseMessage.TOKEN_MISSING);
+    }
+
+    const user = jwtService.decodeToken(
+        accessToken.replace("Bearer ", "")
+    ) as UserInToken;
+
+    if (![`${UserRole.STAFF}`, `${UserRole.ADMIN}`].includes(user.role)) {
+        throw new AccessDenided(ResponseMessage.ACCESS_DENIED);
+    }
+
+    next();
+};
+
 const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
     const accessToken: string | string[] | undefined =
         req.headers["authorization"];
@@ -40,7 +63,7 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
         accessToken.replace("Bearer ", "")
     ) as UserInToken;
 
-    if (user.role !== UserRole.STAFF) {
+    if (user.role !== UserRole.ADMIN) {
         throw new AccessDenided(ResponseMessage.ACCESS_DENIED);
     }
 
@@ -50,5 +73,6 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
 export const authMiddleware = {
     isAuthorized,
     isAdmin,
+    isStaffOrAdmin,
     checkAuth,
 };

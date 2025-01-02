@@ -8,21 +8,21 @@ router.get("/", cardController.getCards);
 router.post(
     "/",
     authMiddleware.isAuthorized,
-    authMiddleware.isAdmin,
+    authMiddleware.isStaffOrAdmin,
     expressSchemaValidator("/cards"),
     cardController.insertCard
 );
 router.put(
     "/:id",
     authMiddleware.isAuthorized,
-    authMiddleware.isAdmin,
+    authMiddleware.isStaffOrAdmin,
     expressSchemaValidator("/cards/:id"),
     cardController.updateCard
 );
 router.delete(
     "/:id",
     authMiddleware.isAuthorized,
-    authMiddleware.isAdmin,
+    authMiddleware.isStaffOrAdmin,
     cardController.deleteCard
 );
 router.get("/linked-vehicle", cardController.validateCard);

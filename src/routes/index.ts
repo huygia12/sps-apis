@@ -1,5 +1,7 @@
 import express, {Request, Response} from "express";
 import userRoute from "@/routes/v1/user-route";
+import customerRoute from "@/routes/v1/customer-route";
+import staffRoute from "@/routes/v1/staff-route";
 import cardRoute from "@/routes/v1/card-route";
 import videoRoute from "@/routes/v1/video-route";
 import vehicleRoute from "@/routes/v1/vehicle-route";
@@ -13,6 +15,8 @@ const space = (req: Request, res: Response, next: NextFunction) => {
 };
 
 router.use("/api/v1/users", space, userRoute);
+router.use("/api/v1/customers", space, customerRoute);
+router.use("/api/v1/staffs", space, staffRoute);
 router.use("/api/v1/cards", space, cardRoute);
 router.use("/api/v1/videos", space, videoRoute);
 router.use("/api/v1/vehicles", space, vehicleRoute);
